@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { toast } from "react-toastify"; 
 import "./ContactUs.css";
 import NavigationBar from "../components/NavigationBar";
 
@@ -10,7 +11,6 @@ const FancyContactUs = () => {
   });
 
   const [showContactInfo, setShowContactInfo] = useState(false);
-  const [statusMessage, setStatusMessage] = useState(""); // For feedback to the user
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -20,51 +20,42 @@ const FancyContactUs = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Create an object to send to the backend
-    const dataToSend = {
-      name: formData.name,
-      email: formData.email,
-      message: formData.message,
-      submittedAt: new Date().toISOString(), // Submitted at current date and time
-    };
-
-    try {//http://localhost:8080/ContactUs/SubmitContactForm
-      // Make a POST request to the backend API
-      const response = await fetch("http://localhost:8080/contactus/submitcontactform", { 
+    try {
+      const response = await fetch("http://localhost:8080/api/contactus/submit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(dataToSend), // Convert form data to JSON
+        body: JSON.stringify(formData),
       });
 
+      toast.dismiss(); // Close any existing toast before showing a new one
+
       if (response.ok) {
-        const responseData = await response.json();
-        setStatusMessage("Your message has been submitted successfully!"); // Success message
+        toast.success("Your message has been submitted successfully!");
+        setFormData({ name: "", email: "", message: "" }); // Clear form
       } else {
-        setStatusMessage("Failed to submit your message. Please try again.");
+        toast.error("Failed to submit your message. Please try again.");
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      setStatusMessage("There was an error with the submission. Please try again.");
+      toast.error("There was an error with the submission. Please try again.");
     }
   };
 
   return (
     <>
       <NavigationBar />
+
       <div className="fancy-contact-us-container">
         <h1 className="fancy-title">We'd Love to Hear from You</h1>
         <p className="fancy-subtitle">Drop us a message and we’ll get back to you soon!</p>
-        
-        {statusMessage && <p className="status-message">{statusMessage}</p>} {/* Status Message */}
 
         <div className="fancy-form-container">
           <form onSubmit={handleSubmit}>
             <div className="fancy-form-field">
               <input
                 type="text"
-                id="name"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
@@ -72,14 +63,11 @@ const FancyContactUs = () => {
                 className="fancy-input"
                 placeholder=" "
               />
-              <label htmlFor="name" className="fancy-label">
-                Full Name
-              </label>
+              <label className="fancy-label">Full Name</label>
             </div>
             <div className="fancy-form-field">
               <input
                 type="email"
-                id="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
@@ -87,13 +75,10 @@ const FancyContactUs = () => {
                 className="fancy-input"
                 placeholder=" "
               />
-              <label htmlFor="email" className="fancy-label">
-                Email Address
-              </label>
+              <label className="fancy-label">Email Address</label>
             </div>
             <div className="fancy-form-field">
               <textarea
-                id="message"
                 name="message"
                 value={formData.message}
                 onChange={handleChange}
@@ -101,13 +86,9 @@ const FancyContactUs = () => {
                 className="fancy-textarea"
                 placeholder=" "
               />
-              <label htmlFor="message" className="fancy-label">
-                Your Message
-              </label>
+              <label className="fancy-label">Your Message</label>
             </div>
-            <button type="submit" className="fancy-submit-button">
-              Send Message
-            </button>
+            <button type="submit" className="fancy-submit-button">Send Message</button>
           </form>
         </div>
 
@@ -121,12 +102,8 @@ const FancyContactUs = () => {
         {showContactInfo && (
           <div className="fancy-contact-info">
             <h2>Our Contact Details</h2>
-            <p>
-              📞 <span>+971 934 8769</span>
-            </p>
-            <p>
-              ✉️ <span>support@trustvault.com</span>
-            </p>
+            <p>📞 <span>+91 9147946920</span></p>
+            <p>✉️ <span>support@trustvault.com</span></p>
           </div>
         )}
       </div>
