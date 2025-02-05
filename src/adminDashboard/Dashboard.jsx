@@ -2,9 +2,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import "./AdminDashboard.css";
+import NavigationBar2 from "../components/NavigationBar2";
 
 function Dashboard() {
   return (
+    <div className="user-dashboard-container">
+      <NavigationBar2 />
     <div className="dashboard-container">
       <h2 className="dashboard-title">Welcome to Admin Dashboard</h2>
 
@@ -35,6 +38,7 @@ function Dashboard() {
         <p>&copy; 2024 TrustVault. All rights reserved.</p>
 
       </footer>
+    </div>
     </div>
   );
 }
