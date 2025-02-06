@@ -21,6 +21,7 @@ import NavigationBar2 from "./components/NavigationBar2.jsx";
 import ContactUs from "./pages/ContactUs.jsx";
 import PrivacyPolicy from "./pages/privacypolicy.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
+import NavigationBar3 from "./components/NavigationBar3.jsx";
 
 const withNavBar = (Component) => (
   <>
@@ -49,6 +50,7 @@ const App = () => {
         <Route path="/AdminDashboard"element={<> {/* Include Navbar here */}<Dashboard/> </>}     />
 
         <Route path="/NavigationBar2"element={<><NavigationBar2/> </>}     />
+        <Route path="/NavigationBar3"element={<><NavigationBar3/> </>}     />
         <Route path="/contact"element={<><ContactUs/> </>}     />
         <Route path="/PrivacyPolicy"element={<><PrivacyPolicy/> </>}     />
         <Route path="/ProfilePage"element={<><ProfilePage/> </>}     />

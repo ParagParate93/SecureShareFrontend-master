@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './ProfilePage.css';
+import NavigationBar3 from "../components/NavigationBar3";
 
 const ProfilePage = () => {
   // State to manage the profile data
@@ -83,6 +84,8 @@ const ProfilePage = () => {
   };
 
   return (
+    <div className="user-dashboard-container">
+      <NavigationBar3 />
     <div className="profile-page">
       <div className="profile-container">
         <div className="profile-header">
@@ -191,6 +194,7 @@ const ProfilePage = () => {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };
