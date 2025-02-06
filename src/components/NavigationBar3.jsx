@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import "./NavigationBar2.css";
+import "./NavigationBar3.css";
 
 const NavigationBar2 = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -13,17 +13,19 @@ const NavigationBar2 = () => {
     const token = localStorage.getItem("authtoken");
     if (token) {
       setIsLoggedIn(true);
-      const email = localStorage.getItem("email"); 
+      const email = localStorage.getItem("userEmail"); // Retrieve the email from localStorage
       setUserEmail(email);
     }
   }, []);
 
   const handleLogout = () => {
     console.log("Logging out...");
-    localStorage.removeItem("authtoken"); 
-    localStorage.removeItem("email");
+    
+    localStorage.removeItem("authtoken");
+    localStorage.removeItem("userEmail");
     localStorage.removeItem("role");
     localStorage.removeItem("name");
+ 
     localStorage.setItem("loggedIn", false);
     navigate("/login");
   };
@@ -35,7 +37,7 @@ const NavigationBar2 = () => {
   return (
     <nav className="navbar">
       <div className="navbar-logo">
-        <Link to="/AdminDashboard">TrustVault</Link>
+        <Link to="/userDashboard">TrustVault</Link>
       </div>
       <ul className="navbar-links">
         {!isLoggedIn ? (
@@ -53,7 +55,7 @@ const NavigationBar2 = () => {
               <button className="profile-button">Profile</button>
               {showDropdown && (
                 <div className="dropdown-menu">
-                  <p style={{ color: 'white',margin:'15px' }}>{userEmail}</p>
+                  <p style={{ color: 'black',margin:'15px' }}>{userEmail}</p>
                   <Link to="/ProfilePage">
                     <button className="dropdown-item">Profile Page</button>
                   </Link>

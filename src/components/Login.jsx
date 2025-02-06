@@ -78,6 +78,7 @@ const Login = () => {
 
       if (response.data && response.data.success) {
         toast.success("Login Successful!");
+        localStorage.setItem("loggedIn", true); 
 
         setTimeout(() => {
           console.log(response.data);

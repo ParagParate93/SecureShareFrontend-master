@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './ProfilePage.css';
+import NavigationBar3 from "../components/NavigationBar3";
 
 const ProfilePage = () => {
   // State to manage the profile data
@@ -28,7 +29,7 @@ const ProfilePage = () => {
   const nameRegex = /^[A-Za-z\s]+$/; // Only letters and spaces
   const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/; // Simple email validation
   const phoneRegex = /^\+?\d{10,15}$/; // Phone number with optional + and 10-15 digits
-  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,20}$/; // Password: 6-20 characters, must contain letters and numbers
+  const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[#@$*]).{5,20}$/;
 
   // Handle changes in the profile form
   const handleChange = (e) => {
@@ -83,6 +84,8 @@ const ProfilePage = () => {
   };
 
   return (
+    <div className="user-dashboard-container">
+      <NavigationBar3 />
     <div className="profile-page">
       <div className="profile-container">
         <div className="profile-header">
@@ -191,6 +194,7 @@ const ProfilePage = () => {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };

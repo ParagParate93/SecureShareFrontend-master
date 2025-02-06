@@ -185,3 +185,21 @@
   color: rgba(255, 255, 255, 0.8);
   
 }
+
+/* styles.css */
+.tgl {
+  color: pink;
+  font-family: 'Arial', sans-serif;
+  font-size: 20px;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 5px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.tgl:hover {
+  background-color: red;
+}
