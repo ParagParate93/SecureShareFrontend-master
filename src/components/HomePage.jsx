@@ -116,7 +116,7 @@ const HomePage = () => {
 
         {/* Call-to-Action Section */}
         <section className="cta-section">
-        <p class='tgl'>Ready to experience secure document sharing?</p>
+        <p className='tgl'>Ready to experience secure document sharing?</p>
           <div className="cta-buttons">
             <Link to="/signup" className="btn btn-signup">
               Sign Up

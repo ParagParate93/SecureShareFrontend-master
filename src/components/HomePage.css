@@ -186,10 +186,10 @@
   
 }
 
-/* styles.css */
 .tgl {
   color: pink;
-  font-family: 'Arial', sans-serif;
+  background-color:#33006F;
+  font-family: '#007aff', sans-serif;
   font-size: 20px;
   font-weight: bold;
   padding: 10px;
@@ -201,5 +201,6 @@
 }
 
 .tgl:hover {
-  background-color: red;
+  background-color:purple ;
 }
+
