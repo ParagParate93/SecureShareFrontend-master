@@ -13,15 +13,18 @@ const NavigationBar2 = () => {
     const token = localStorage.getItem("authtoken");
     if (token) {
       setIsLoggedIn(true);
-      const email = localStorage.getItem("email"); // Retrieve the email from localStorage
+      const email = localStorage.getItem("email"); 
       setUserEmail(email);
     }
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("authtoken"); //removing token after logout
-    localStorage.removeItem("userEmail"); //removing email after logout
-    setIsLoggedIn(false);
+    console.log("Logging out...");
+    localStorage.removeItem("authtoken"); 
+    localStorage.removeItem("email");
+    localStorage.removeItem("role");
+    localStorage.removeItem("name");
+    localStorage.setItem("loggedIn", false);
     navigate("/login");
   };
 
