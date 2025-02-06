@@ -19,9 +19,14 @@ const NavigationBar2 = () => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("authtoken"); //removing token after logout
-    localStorage.removeItem("userEmail"); //removing email after logout
-    setIsLoggedIn(false);
+    console.log("Logging out...");
+    
+    localStorage.removeItem("authtoken");
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("role");
+    localStorage.removeItem("name");
+ 
+    localStorage.setItem("loggedIn", false);
     navigate("/login");
   };
 
