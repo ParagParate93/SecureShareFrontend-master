@@ -25,18 +25,21 @@ const ForgotPassword = () => {
   };
 
   const handleVerifyOtp = () => {
-    axios.post(`http://localhost:8080/users/reset-password`, {
-      email,
-      otp,
-      newPassword
+     axios.post(
+      `http://localhost:8080/users/reset-password`, 
+      {
+        email,
+        otp,
+        newPassword,
+      }
+    )
+    .then((resetResponse) => {
+      toast.success("Password updated successfully!");
+      navigate("/login");
     })
-      .then((resetResponse) => {
-        toast.success("Password updated successfully!");
-        navigate("/login"); 
-      })
-      .catch((error) => {
-        toast.error("Error updating password.");
-      });
+    .catch((error) => {
+      toast.error("Error updating password.");
+    });
   };
   
 
