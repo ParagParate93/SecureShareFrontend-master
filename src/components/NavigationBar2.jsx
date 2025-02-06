@@ -10,7 +10,7 @@ const NavigationBar2 = () => {
 
   // Check if user is logged in when the component mounts
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
+    const token = localStorage.getItem("authtoken");
     if (token) {
       setIsLoggedIn(true);
       const email = localStorage.getItem("userEmail"); // Retrieve the email from localStorage
@@ -19,7 +19,7 @@ const NavigationBar2 = () => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("authToken"); //removing token after logout
+    localStorage.removeItem("authtoken"); //removing token after logout
     localStorage.removeItem("userEmail"); //removing email after logout
     setIsLoggedIn(false);
     navigate("/login");
