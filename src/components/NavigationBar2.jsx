@@ -25,7 +25,7 @@ const NavigationBar2 = () => {
     localStorage.removeItem("role");
     localStorage.removeItem("name");
     localStorage.setItem("loggedIn", false);
-    navigate("/login");
+    navigate("/login", {replace: "true"});
   };
 
   const toggleDropdown = () => {

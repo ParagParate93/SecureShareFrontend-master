@@ -1,10 +1,14 @@
 import React from "react";
-import { Outlet } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 
-function ProtectedRoute(){
-    const isLoggedIn = localStorage.getItem("loggedIn");
-    return isLoggedIn === "true" ? <Outlet/>:<Navigate to = "login"/>
-    return "route";
+function ProtectedRoute() {
+  const isLoggedIn = localStorage.getItem("loggedIn");
+
+  if (isLoggedIn !== "true") {
+    return <Navigate to="/login" />;
+  }
+
+  return <Outlet />;
 }
 
 export default ProtectedRoute;
