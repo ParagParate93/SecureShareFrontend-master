@@ -9,7 +9,7 @@ const FancyContactUs = () => {
     email: "",
     message: "",
   });
-
+ 
   const [showContactInfo, setShowContactInfo] = useState(false);
 
   const handleChange = (e) => {
