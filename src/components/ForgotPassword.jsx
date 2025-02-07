@@ -9,11 +9,13 @@ const ForgotPassword = () => {
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const navigate = useNavigate(); 
 
   
   const handleSendOtp = () => {
+    setIsSubmitting(true); 
     axios.post(`http://localhost:8080/forgotpass/${email}`) 
       .then((response) => {
         toast.success("OTP sent to your email!");
@@ -21,22 +23,29 @@ const ForgotPassword = () => {
       })
       .catch((error) => {
         toast.error("Email not found or error sending OTP.");
+      }).finally(() => {  
+        setIsSubmitting(false);
       });
   };
 
+  
+
   const handleVerifyOtp = () => {
-    axios.post(`http://localhost:8080/users/reset-password`, {
-      email,
-      otp,
-      newPassword
+     axios.post(
+      `http://localhost:8080/users/reset-password`, 
+      {
+        email,
+        otp,
+        newPassword,
+      }
+    )
+    .then((resetResponse) => {
+      toast.success("Password updated successfully!");
+      navigate("/login");
     })
-      .then((resetResponse) => {
-        toast.success("Password updated successfully!");
-        navigate("/login"); 
-      })
-      .catch((error) => {
-        toast.error("Error updating password.");
-      });
+    .catch((error) => {
+      toast.error("Error updating password.");
+    });
   };
   
 
@@ -52,7 +61,9 @@ const ForgotPassword = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <button onClick={handleSendOtp}>Send OTP</button>
+          <button onClick={handleSendOtp} disabled={isSubmitting}>
+            {isSubmitting ? "Sending OTP..." : "Send OTP"}
+          </button>
         </>
       )}
 

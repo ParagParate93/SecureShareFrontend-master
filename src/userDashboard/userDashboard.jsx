@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 import {
   faFileAlt,
   faFilePdf,
@@ -7,7 +8,9 @@ import {
   faSearch,
   faSort,
   faUpload,
+  faEllipsisV,faCheckCircle,faShareAlt,faShareSquare   
 } from "@fortawesome/free-solid-svg-icons";
+
 import "./UserDashboard.css";
 import NavigationBar2 from "../components/NavigationBar2";
 import axios from "axios";
@@ -17,7 +20,9 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-
+import getDecodedToken  from "./auth";
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 const UserDashboard = () => {
   const [documents, setDocuments] = useState([]);
   const [sortOrder, setSortOrder] = useState("asc");
@@ -27,23 +32,39 @@ const UserDashboard = () => {
   const [selectedDocumentId, setSelectedDocumentId] = useState(null);
   const [emailError, setEmailError] = useState("");
   const [selectedDocumentName, setSelectedDocumentName] = useState("");
-  //  var name = "Ashwini Patil";
-  //  var useremail = "patilash8698@gmail.com";
-  var name = "Pramod Patil";
-var useremail = "patilpramod95@gmail.com";
-  // var name = "Rohit Owal";
-  // var useremail = "owalrohit03@gmail.com";
-  // Fetch documents from the database on component mount
+  const [user, setUser] = useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [shareInfoDialogOpen, setShareInfoDialogOpen] = useState(false);
+  const [selectedDoc, setSelectedDoc] = useState(null);
+  const [sharedDocInfo, setSharedDocInfo] = useState(null);
+   var name = localStorage.getItem("name");
+   var useremail = localStorage.getItem("email");
   useEffect(() => {
+    // Decode the JWT token
+    const token = localStorage.getItem("authtoken");
+    console.log("token before decoding :    "+token);
+    if (token !== null) {
+      const token1 = token; 
+      console.log("token before decoding in loop :    "+token1);
+      const decodedToken = getDecodedToken(); // Decode the token
+      console.log("token after decoding :    "+decodedToken);
+      setUser(decodedToken);
+    }
     fetchDocuments();
   }, []);
 
+  console.log("user decode ",user);
   const fetchDocuments = async () => {
     try {
+      const token = localStorage.getItem("authtoken"); 
+      console.log(token);
       const response = await axios.get(
-        `http://localhost:8080/api/document/getAllDocument`,
+        "http://localhost:8080/api/document/getAllDocument",
         {
-          params: { uploadedBy: name, uploaderEmail: useremail }, // Replace with dynamic user info if available
+          params: { uploadedBy: name, uploaderEmail: useremail }, 
+          headers: {
+            "Authorization": `Bearer ${token}`, 
+          },
         }
       );
       console.log(response.data);
@@ -53,30 +74,41 @@ var useremail = "patilpramod95@gmail.com";
       alert("Failed to fetch documents. Please try again later.");
     }
   };
-
+  const handleMenuClick = (e, doc) => {
+    setAnchorEl(e.currentTarget);  // Set the anchor to the clicked icon
+    setSelectedDoc(doc);  // Set the selected document
+  };
+  
+  const handleMenuClose = () => {
+    setAnchorEl(null);  // Close the menu by setting anchorEl to null
+    setSelectedDoc(null);  // Reset selectedDoc
+  };
   const formatFileType = (mimeType) => {
     const fileTypeMap = {
-        "application/pdf": "PDF",
-        "application/msword": "DOC",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "DOCX",
-        "application/vnd.ms-excel": "XLS",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "XLSX",
-        "text/plain": "TXT",
-        "image/png": "PNG",
-        "image/jpeg": "JPG",
-        "image/jpg": "JPG",
-        "image/gif": "GIF",
-        "image/svg+xml": "SVG",
-        "application/zip": "ZIP",
-        "application/x-rar-compressed": "RAR"
+      "application/pdf": "PDF",
+      "application/msword": "DOC",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "DOCX",
+      "application/vnd.ms-excel": "XLS",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "XLSX",
+      "text/plain": "TXT",
+      "image/png": "PNG",
+      "image/jpeg": "JPG",
+      "image/jpg": "JPG",
+      "image/gif": "GIF",
+      "image/svg+xml": "SVG",
+      "application/zip": "ZIP",
+      "application/x-rar-compressed": "RAR",
     };
-    
-    return fileTypeMap[mimeType] || mimeType.toUpperCase();  // Default fallback
-};
+
+    return fileTypeMap[mimeType] || mimeType.toUpperCase(); 
+  };
+
   // Handle file upload
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
+
+    const token = localStorage.getItem("authtoken"); 
 
     // Validate file type and size
     if (file.type.startsWith("video/")) {
@@ -91,17 +123,25 @@ var useremail = "patilpramod95@gmail.com";
       return;
     }
 
+    console.log("username :   "+name);
+    console.log("usermail...: "+useremail);
     const formData = new FormData();
     formData.append("file", file);
     formData.append("uploadedBy", name);
     formData.append("uploaderEmail", useremail);
 
-
     try {
+      console.log(localStorage.getItem("authtoken"));
+      const token = localStorage.getItem("authtoken"); 
+      console.log("this is my jwt token :    "+localStorage.getItem("authtoken"));
       await axios.post("http://localhost:8080/api/document/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: {
+          "Content-Type": "multipart/form-data",
+          "Authorization": `Bearer ${token}`, 
+        },
       });
-      fetchDocuments(); // Refresh documents after upload
+      console.log(token);
+      fetchDocuments(); 
       alert("File uploaded successfully!");
     } catch (error) {
       console.error("Error uploading file:", error);
@@ -111,59 +151,109 @@ var useremail = "patilpramod95@gmail.com";
     event.target.value = "";
   };
 
+
+const deleteDocument = async (id) => {
+  try {
+    const token = localStorage.getItem("authtoken"); 
+
+    if (!token) {
+      alert("You are not authenticated. Please log in.");
+      return;
+    }
+
+    const res=await axios.delete(`http://localhost:8080/api/document/deleteDocument/${id}`,{
+      headers: {
+        "Authorization": `Bearer ${token}` 
+      }
+    });
+
+    fetchDocuments(); 
+    alert("File deleted successfully!");
+  } catch (error) {
+    console.error("Error deleting file:", error.response || error.message);
+    alert("Failed to delete file.");
+  }
+};
+
+
+const handleDownload = async (docId) => {
+  const token = localStorage.getItem("authtoken"); 
+  const fileUrl = `http://localhost:8080/api/document/download/${docId}`;
+  const headers = new Headers();
+  headers.append("Authorization", `Bearer ${token}`);
+
+  try {
+    const response = await fetch(fileUrl, { headers });
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = docId; // You can customize the filename here
+    link.click();
+    window.URL.revokeObjectURL(url); // Clean up the URL object
+  } catch (error) {
+    console.error('Error downloading document:', error);
+  }
+};
+
+
   // Preview file
   const handlePreview = async (doc) => {
     try {
-        const fileUrl = `http://localhost:8080/api/document/download/${doc.id}`;
-        const previewWindow = window.open("", "_blank");
-
-        if (!previewWindow) {
-            alert("Please allow pop-ups to preview the document.");
-            return;
-        }
-
-        previewWindow.document.write(`<h1>${doc.name}</h1>`);
-
-        if (doc.type === "text/plain") {
-            const response = await fetch(fileUrl);
-            const text = await response.text();
-            previewWindow.document.write(`<pre>${text}</pre>`);
-        } else if (doc.type === "application/pdf") {
-            previewWindow.document.write(
-                `<embed src="${fileUrl}" width="100%" height="600px" type="application/pdf" />`
-            );
-        } else if (doc.type.startsWith("image/")) {
-            previewWindow.document.write(
-                `<img src="${fileUrl}" alt="${doc.name}" width="50%" height="auto"/>`
-            );
-        } 
-        // Check for Word and Excel file types
-        else if (
-            doc.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || // .docx
-            doc.type === "application/msword" || // .doc
-            doc.type === "application/vnd.ms-excel" || // .xls
-            doc.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" // .xlsx
-        ) {
-            previewWindow.document.write(`
-                <p>Preview is not available for this file type. You can download the document using the link below:</p>
-                <a href="${fileUrl}" download="${doc.name}" style="padding:10px; background:#007BFF; color:white; text-decoration:none; border-radius:5px;">Download File</a>
-            `);
-        } else {
-            previewWindow.document.write("<p>Preview not available for this file type.</p>");
-        }
+      const token = localStorage.getItem("authtoken"); // Retrieve JWT token
+  
+      if (!token) {
+        alert("You are not authenticated. Please log in.");
+        return;
+      }
+  
+      const fileUrl = `http://localhost:8080/api/document/download/${doc.id}`;
+      const headers = new Headers();
+      headers.append("Authorization", `Bearer ${token}`);
+  
+      const response = await fetch(fileUrl, { headers });
+  
+      if (!response.ok) {
+        throw new Error("Failed to fetch document");
+      }
+  
+      const blob = await response.blob();
+      const fileType = doc.type;
+  
+      const previewWindow = window.open("", "_blank");
+      if (!previewWindow) {
+        alert("Please allow pop-ups to preview the document.");
+        return;
+      }
+  
+      const objectUrl = URL.createObjectURL(blob);
+  
+      if (fileType === "application/pdf") {
+        previewWindow.document.write(`<embed src="${objectUrl}" width="100%" height="600px" type="application/pdf" />`);
+      } else if (fileType.startsWith("image/")) {
+        previewWindow.document.write(`<img src="${objectUrl}" alt="${doc.name}" width="50%" height="auto"/>`);
+      } else if (fileType === "text/plain") {
+        const text = await blob.text();
+        previewWindow.document.write(`<pre>${text}</pre>`);
+      } else {
+        previewWindow.document.write(`
+          <p>Preview is not available for this file type. You can download it below:</p>
+          <a href="${objectUrl}" download="${doc.name}">Download File</a>
+        `);
+      }
     } catch (error) {
-        console.error("Error previewing file:", error);
-        alert("Failed to preview file.");
+      console.error("Error previewing file:", error);
+      alert("Failed to preview file.");
     }
-};
-
+  };
+  
 
   // Toggle sort order
   const toggleSortOrder = () => {
     const newSortOrder = sortOrder === "asc" ? "desc" : "asc";
     const sortedDocuments = [...documents].sort((a, b) => {
       // Parse dates properly
-      const dateA = new Date(a.uploadedAt);  // Assuming 'uploadedAt' is the date field
+      const dateA = new Date(a.uploadedAt); // Assuming 'uploadedAt' is the date field
       const dateB = new Date(b.uploadedAt);
 
       // Ensure the dates are valid
@@ -197,15 +287,15 @@ var useremail = "patilpramod95@gmail.com";
     }
   };
 
-  // Format the date correctly
+
   const formatDate = (dateString) => {
     if (!dateString) {
       console.error("Invalid or missing date:", dateString);
-      return "Invalid Date";  // Return a fallback value for invalid dates
+      return "Invalid Date"; // Return a fallback value for invalid dates
     }
 
     // If the date string contains a microsecond and timezone, we remove it
-    const sanitizedDate = dateString.split(".")[0];  // Safely handle the split
+    const sanitizedDate = dateString.split(".")[0]; // Safely handle the split
     const date = new Date(sanitizedDate);
 
     // Check if date is valid
@@ -222,8 +312,6 @@ var useremail = "patilpramod95@gmail.com";
     if (sizeInBytes < 1024 * 1024) return `${(sizeInBytes / 1024).toFixed(2)} KB`;
     return `${(sizeInBytes / (1024 * 1024)).toFixed(2)} MB`;
   };
-
-
 
   const handleOpenSharePopup = (docId, docName) => {
     setSelectedDocumentId(docId);
@@ -255,15 +343,26 @@ var useremail = "patilpramod95@gmail.com";
       setOpen(false); // Close the popup
     };
 
+    const token = localStorage.getItem("authtoken"); // ******************
+
     try {
       // Call the API to share the document
-      await axios.post(`http://localhost:8080/api/document/share`, {
-        documentId: selectedDocumentId,
-        sharedWith: email,
-        documentName: selectedDocumentName,
-        sharedBy: name,
-        sharedAt: "2024-12-08T10:00:00"
-      });
+      await axios.post(
+        "http://localhost:8080/api/document/share",
+        {
+          documentId: selectedDocumentId,
+          sharedWith: email,
+          documentName: selectedDocumentName,
+          sharedBy: name,
+          sharedAt: "2024-12-08T10:00:00",
+          
+        },
+        {
+          headers: {
+            "Authorization": `Bearer ${token}`, // ****************** Add token to the headers
+          },
+        }
+      );
       alert("Document shared successfully!");
       handleCloseSharePopup();
     } catch (error) {
@@ -273,6 +372,19 @@ var useremail = "patilpramod95@gmail.com";
   };
 
 
+  const handleViewShareInfo = (doc) => {
+    // Show sharing info dialog when document is shared
+    setSharedDocInfo({
+      sharedBy: doc.sharedBy,
+      sharedAt: doc.sharedAt,
+    });
+    setShareInfoDialogOpen(true);
+  };
+
+  const handleCloseShareInfoDialog = () => {
+    setShareInfoDialogOpen(false);
+    setSharedDocInfo(null);
+  };
   return (
     <div className="user-dashboard-container">
       <NavigationBar2 />
@@ -282,6 +394,7 @@ var useremail = "patilpramod95@gmail.com";
       </header>
 
       <main className="user-dashboard-main">
+        {/* Upload Section */}
         <section className="user-dashboard-upload-section">
           <label className="upload-button">
             <FontAwesomeIcon icon={faUpload} />
@@ -294,6 +407,7 @@ var useremail = "patilpramod95@gmail.com";
           </label>
         </section>
 
+        {/* Search and Sort Section */}
         <section className="user-dashboard-sort-search">
           <div className="search-sort-container">
             <button className="sort-button" onClick={toggleSortOrder}>
@@ -313,6 +427,7 @@ var useremail = "patilpramod95@gmail.com";
           </div>
         </section>
 
+        {/* File List Section */}
         <section className="user-dashboard-file-list">
           {filteredDocuments.length === 0 ? (
             <p>No documents available.</p>
@@ -330,37 +445,42 @@ var useremail = "patilpramod95@gmail.com";
               <tbody>
                 {filteredDocuments.map((doc) => (
                   <tr key={doc.id}>
-                    <td>{doc.name}</td>
+                    <td>
+                      {doc.name}
+                      {doc.shared && (
+                        <FontAwesomeIcon
+                          icon={faShareSquare}
+                          className="shared-icon"
+                          title="Shared with you"
+                          style={{ marginLeft: '90px' }}
+                          onClick={() => handleViewShareInfo(doc)}
+                        />
+                      )}
+                    </td>
                     <td>{formatDate(doc.uploadedAt)}</td>
                     <td>
                       <FontAwesomeIcon icon={getFileIcon(doc.type)} /> {formatFileType(doc.type)}
                     </td>
                     <td>{formatFileSize(doc.size)}</td>
                     <td>
-                      <button
-                        className="preview-button"
-                        onClick={() => handlePreview(doc)}
+                      <FontAwesomeIcon
+                        icon={faEllipsisV}
+                        className="action-icon"
+                        onClick={(e) => handleMenuClick(e, doc)}
+                      />
+                      <Menu
+                        anchorEl={anchorEl}
+                        open={Boolean(anchorEl) && selectedDoc === doc}
+                        onClose={handleMenuClose}
                       >
-                        Preview
-                      </button>
-                      {/* Conditionally render the Delete button */}
-                      {!doc.isShared && (
-                        <button
-                          className="delete-button"
-                          onClick={() => deleteDocument(doc.id)}
-                        >
-                          Delete
-                        </button>
-                      )}
-                      {/* Conditionally render the Share button */}
-                      {!doc.isShared && (
-                        <button
-                          className="share-button"
-                          onClick={() => handleOpenSharePopup(doc.id, doc.name)}
-                        >
-                          Share
-                        </button>
-                      )}
+                        <MenuItem onClick={() => handlePreview(doc)}>Preview</MenuItem>
+                        {/* Add the download option */}
+                        <MenuItem onClick={() => handleDownload(doc.id)}>Download</MenuItem>
+                        {!doc.shared && [
+                          <MenuItem key="share" onClick={() => handleOpenSharePopup(doc.id, doc.name)}>Share</MenuItem>,
+                          <MenuItem key="delete" onClick={() => deleteDocument(doc.id)}>Delete</MenuItem>
+                        ]}
+                      </Menu>
                     </td>
                   </tr>
                 ))}
@@ -370,53 +490,41 @@ var useremail = "patilpramod95@gmail.com";
         </section>
       </main>
 
-
-      <Dialog
-        open={isSharePopupOpen}
-        onClose={handleCloseSharePopup}
-        PaperProps={{
-          style: {
-            borderRadius: "12px",
-            background: "white",
-            color: "black",
-          },
-        }}
-      >
-        <DialogTitle>
-          <div className="popup-header">Share Document</div>
-        </DialogTitle>
+      {/* Share Document Popup */}
+      <Dialog open={isSharePopupOpen} onClose={handleCloseSharePopup}>
+        <DialogTitle>Share Document</DialogTitle>
         <DialogContent>
-          {/* Show the document name */}
-          <h6>
-            Sharing: <strong>{selectedDocumentName}</strong>
-          </h6>
-          <h5 style={{ marginBottom: "12px", color: "black" }}>Enter email address to share this document</h5>
           <TextField
-            label="Recipient's Email"
+            label="Email Address"
             type="email"
-            fullWidth
             value={email}
             onChange={handleEmailChange}
+            fullWidth
             error={!!emailError}
-            helperText={emailError || "Enter a valid email address"}
+            helperText={emailError}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseSharePopup} className="popup-cancel-button">
-            Cancel
-          </Button>
-          <Button
-            onClick={handleShareDocument}
-            className="popup-share-button"
-            disabled={!!emailError}
-          >
+          <Button onClick={handleCloseSharePopup}>Cancel</Button>
+          <Button onClick={handleShareDocument} color="primary">
             Share
           </Button>
         </DialogActions>
       </Dialog>
 
+      {/* Share Document Info Dialog */}
+      <Dialog open={shareInfoDialogOpen} onClose={handleCloseShareInfoDialog}>
+        <DialogTitle>Shared Document Info</DialogTitle>
+        <DialogContent>
+          <p><strong>Shared By:</strong> {sharedDocInfo?.sharedBy}</p>
+          <p><strong>Shared At:</strong> {formatDate(sharedDocInfo?.sharedAt)}</p>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseShareInfoDialog}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </div>
-  )
-}
+  );
+};
 
 export default UserDashboard;

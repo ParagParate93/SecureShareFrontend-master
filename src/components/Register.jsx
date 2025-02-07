@@ -10,7 +10,7 @@ const Register = () => {
     password: "",
     confirmPassword: "",
     phone: "",
-    role: "ROLE_USER", // Role is now included here
+    role: "ROLE_USER", // Default role
   });
 
   const [errors, setErrors] = useState({});
@@ -37,13 +37,13 @@ const Register = () => {
       return;
     }
 
-    // Prepare data for the backend, including role
+    //backend data
     const userPayload = {
       name: formData.name,
       email: formData.email,
       password: formData.password,
       phone: formData.phone,
-      role: formData.role, // Role is included here
+      role: formData.role, 
     };
 
     try {
@@ -96,7 +96,7 @@ const Register = () => {
       errors.password =
         "Password must be 5-20 characters long, contain at least one digit, one lowercase letter, and one special character (#, @, $, *).";
     }
-    
+
 
     // Confirm Password validation
     if (data.confirmPassword !== data.password) {
@@ -174,7 +174,7 @@ const Register = () => {
             value={formData.phone}
             onChange={handleChange}
             required
-            pattern="(\+?\d{1,4}[\s-]?)?(\(?\d{1,4}\)?[\s-]?)?[\d-]{5,20}" 
+            pattern="\+?[0-9]{1,4}[\s\-]?\(?[0-9]{1,4}\)?[\s\-]?[0-9]{5,15}"
             title="Please enter a valid phone number"
           />
           {errors.phone && <p className="error">{errors.phone}</p>}

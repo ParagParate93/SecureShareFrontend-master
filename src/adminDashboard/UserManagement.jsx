@@ -1,10 +1,13 @@
+// React Frontend - UserManagement.jsx
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./styles.css";
+import NavigationBar3 from "../components/NavigationBar3";
 
 function UserManagement() {
   const [users, setUsers] = useState([]);
-  const [newUser, setNewUser] = useState({ username: "", email: "", role: "" });
+  const [newUser, setNewUser] = useState({ name: "", email: "", role: "", id: null });
   const [editingId, setEditingId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -12,152 +15,194 @@ function UserManagement() {
     fetchUsers();
   }, []);
 
-  // Fetch users from the backend
   const fetchUsers = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/getalluser");
+      const token = localStorage.getItem("authtoken");
+      const response = await axios.get("http://localhost:8080/getalluser",{
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
       setUsers(response.data);
     } catch (error) {
       console.error("There was an error fetching the users!", error);
     }
   };
 
-  // Delete user by ID
+  
   const handleDeleteUser = async (id) => {
     try {
-      await axios.delete(`http://localhost:8080/delete/${id}`);
+      const token = localStorage.getItem("authtoken");
+      
+      // Send the delete request with headers
+      await axios.delete(`http://localhost:8080/delete/${id}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+  
+      // Update the users state by filtering out the deleted user
       setUsers(users.filter((user) => user.id !== id));
     } catch (error) {
       console.error("There was an error deleting the user!", error);
     }
   };
+  
 
-  // Edit user (set the user data for updating)
   const handleEditUser = (id) => {
     const user = users.find((u) => u.id === id);
     setEditingId(id);
-    setNewUser({ username: user.username, email: user.email, role: user.role });
+    setNewUser({ name: user.name || "", email: user.email || "", password: user.password || "", phone: user.phone || "", role: user.role || "", id: user.id });
   };
 
-  // Update user
   const handleUpdateUser = async () => {
-    try {
-      const updatedUser = await axios.put(`http://localhost:8080/update/${editingId}`, newUser);
-      setUsers(
-        users.map((user) =>
-          user.id === editingId ? { ...user, role: updatedUser.data.role } : user
-        )
-      );
-      setEditingId(null);
-      setNewUser({ username: "", email: "", role: "" });
-    } catch (error) {
-      console.error("There was an error updating the user!", error);
+    if (newUser.name && newUser.email && newUser.password && newUser.phone && newUser.role) { // *********** Added validation ***********
+      try {
+        const token = localStorage.getItem("authtoken");
+        const updatedUser = await axios.put(`http://localhost:8080/update/${newUser.id}`, newUser,
+          {
+            headers: {
+              "Authorization": `Bearer ${token}`,
+          },
+        }
+        );
+        setUsers(
+          users.map((user) =>
+            user.id === editingId ? updatedUser.data : user
+          )
+        );
+        setEditingId(null);
+        setNewUser({ name: "", email: "", role: "", password: "", phone: "", id: null });
+      } catch (error) {
+        console.error("There was an error updating the user!", error);
+      }
+    } else {
+      alert("Please fill in all fields."); // *********** Added alert for incomplete data ***********
     }
   };
 
-  // Filter users based on the search term
   const filteredUsers = users.filter((user) => {
-    const username = user.username || "";
+    const name = user.name || "";
     const email = user.email || "";
     const role = user.role || "";
     return (
-      username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       role.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 
   return (
-    <div className="container">
-      <h2>User Management</h2>
+    <div className="user-dashboard-container">
+      <NavigationBar3 />
+      <div className="container">
+        <h2>User Management</h2>
 
-      <div className="mb-3">
-        {/* Conditionally render the input fields only if editing */}
         {editingId !== null && (
-          <>
+          <div className="mb-3">
             <input
               type="text"
               className="form-control"
-              placeholder="Username"
-              value={newUser.username}
-              onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
-              disabled
+              placeholder="name"
+              value={newUser.name || ""} // ****** Ensured controlled component behavior ********
+              onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
             />
             <input
               type="email"
               className="form-control"
               placeholder="Email"
-              value={newUser.email}
+              value={newUser.email || ""} // ****** Ensured controlled component behavior ********
               onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
               disabled
             />
+            {/* <input
+            type="password"
+            className="form-control"
+            placeholder="Password"
+            value={newUser.password || ""} // ****** Ensured controlled component behavior ********
+            onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+          /> */}
             <input
-              type="text"
+              type="phone"
               className="form-control"
-              placeholder="Role"
-              value={newUser.role}
-              onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+              placeholder="Phone"
+              value={newUser.phone || ""} // ****** Ensured controlled component behavior ********
+              onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
             />
+            <select
+              className="form-control"
+              value={newUser.role || ""} // ****** Ensured controlled component behavior ********
+              onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+            >
+              <option value="">Select Role</option>
+              <option value="ROLE_USER">ROLE_USER</option>
+              <option value="ROLE_ADMIN">ROLE_ADMIN</option>
+            </select>
             <button className="btn btn-success" onClick={handleUpdateUser}>
               Update User
             </button>
-          </>
+          </div>
         )}
-      </div>
 
-      <div className="mb-3">
-        <input
-          type="text"
-          className="form-control search-input"
-          placeholder="Search by username, email, or role"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
+        <div className="mb-3">
+          <input
+            type="text"
+            className="form-control search-input"
+            placeholder="Search by name, email, or role"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
 
-      <table className="table table-bordered">
-        <thead className="table-dark">
-          <tr>
-            <th>ID</th>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredUsers.length > 0 ? (
-            filteredUsers.map((user) => (
-              <tr key={user.id}>
-                <td>{user.id}</td>
-                <td>{user.name}</td>
-                <td>{user.email}</td>
-                <td>{user.role}</td>
-                <td>
-                  <button
-                    className="btn btn-warning"
-                    onClick={() => handleEditUser(user.id)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="btn btn-danger"
-                    onClick={() => handleDeleteUser(user.id)}
-                  >
-                    Delete
-                  </button>
+        <table className="table table-bordered">
+          <thead className="table-dark">
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Password</th>
+              <th>Phone</th>
+              <th>Role</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredUsers.length > 0 ? (
+              filteredUsers.map((user) => (
+                <tr key={user.id}>
+                  <td>{user.id}</td>
+                  <td>{user.name}</td>
+                  <td>{user.email}</td>
+                  <td>{user.password}</td>
+                  <td>{user.phone}</td>
+                  <td>{user.role}</td>
+                  <td>
+                    <button
+                      className="btn btn-warning"
+                      onClick={() => handleEditUser(user.id)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => handleDeleteUser(user.id)}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5" className="text-center">
+                  No users found
                 </td>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="5" className="text-center">
-                No users found
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

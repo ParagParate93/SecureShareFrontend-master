@@ -69,9 +69,16 @@ const Login = () => {
       });
 
       console.log(response.data);
+      localStorage.setItem("authtoken", response.data.token);
+      localStorage.setItem("role", response.data.role);
+      localStorage.setItem("email", loginData.email);
+      localStorage.setItem("name", response.data.name);
+      const token = localStorage.getItem("authtoken");
+      console.log("token is "+token);
 
       if (response.data && response.data.success) {
         toast.success("Login Successful!");
+        localStorage.setItem("loggedIn", true); 
 
         setTimeout(() => {
           console.log(response.data);
@@ -80,7 +87,7 @@ const Login = () => {
           } else {
             navigate("/UserDashboard");
           }
-        }, 1000);  // Delay to show success toast
+        }, 1000);  
       } else {
         setErrorMessage("Invalid OTP!");
         setShowResendOtp(true);
@@ -89,7 +96,7 @@ const Login = () => {
       setErrorMessage("Invalid OTP!");
       setShowResendOtp(true);
     } finally {
-      setIsSubmitting(false);  // End loading after the request completes
+      setIsSubmitting(false);
     }
   };
 
