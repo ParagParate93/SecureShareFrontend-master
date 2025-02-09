@@ -13,7 +13,7 @@ const NavigationBar2 = () => {
     const token = localStorage.getItem("authtoken");
     if (token) {
       setIsLoggedIn(true);
-      const email = localStorage.getItem("userEmail"); // Retrieve the email from localStorage
+      const email = localStorage.getItem("email"); // Retrieve the email from localStorage
       setUserEmail(email);
     }
   }, []);
@@ -37,7 +37,7 @@ const NavigationBar2 = () => {
   return (
     <nav className="navbar">
       <div className="navbar-logo">
-        <Link to="/userDashboard">TrustVault</Link>
+        <Link to="/AdminDashboard">TrustVault</Link>
       </div>
       <ul className="navbar-links">
         {!isLoggedIn ? (
@@ -55,9 +55,9 @@ const NavigationBar2 = () => {
               <button className="profile-button">Profile</button>
               {showDropdown && (
                 <div className="dropdown-menu">
-                  <p style={{ color: 'black',margin:'15px' }}>{userEmail}</p>
+                  <p style={{ color: 'white',margin:'15px' }}>{userEmail}</p>
                   <Link to="/ProfilePage">
-                    <button className="dropdown-item">Profile Page</button>
+                    <button className="dropdown-item">Admin Profile</button>
                   </Link>
                   <button
                     className="dropdown-item"
@@ -70,9 +70,6 @@ const NavigationBar2 = () => {
             </li>
           </>
         )}
-        <li>
-          <Link to="/about">About Us</Link>
-        </li>
       </ul>
     </nav>
   );
