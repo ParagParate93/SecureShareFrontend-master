@@ -35,7 +35,7 @@ const NavigationBar2 = () => {
   return (
     <nav className="navbar">
       <div className="navbar-logo">
-        <Link to="/AdminDashboard">TrustVault</Link>
+        <Link to="/userDashboard">TrustVault</Link>
       </div>
       <ul className="navbar-links">
         {!isLoggedIn ? (
@@ -55,7 +55,7 @@ const NavigationBar2 = () => {
                 <div className="dropdown-menu">
                   <p style={{ color: 'white',margin:'15px' }}>{userEmail}</p>
                   <Link to="/ProfilePage">
-                    <button className="dropdown-item">Profile Page</button>
+                    <button className="dropdown-item">User Profile</button>
                   </Link>
                   <button
                     className="dropdown-item"
@@ -68,9 +68,6 @@ const NavigationBar2 = () => {
             </li>
           </>
         )}
-        <li>
-          <Link to="/about">About Us</Link>
-        </li>
       </ul>
     </nav>
   );
