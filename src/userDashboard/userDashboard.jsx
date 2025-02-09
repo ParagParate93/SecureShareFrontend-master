@@ -8,9 +8,10 @@ import {
   faSearch,
   faSort,
   faUpload,
-  faEllipsisV,faCheckCircle,faShareAlt,faShareSquare   
+  faEllipsisV, faCheckCircle, faShareAlt, faShareSquare
 } from "@fortawesome/free-solid-svg-icons";
 
+import { ClipLoader } from "react-spinners"; // Import red loader
 import "./UserDashboard.css";
 import NavigationBar2 from "../components/NavigationBar2";
 import axios from "axios";
@@ -20,7 +21,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import getDecodedToken  from "./auth";
+import getDecodedToken from "./auth";
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 const UserDashboard = () => {
@@ -34,36 +35,37 @@ const UserDashboard = () => {
   const [selectedDocumentName, setSelectedDocumentName] = useState("");
   const [user, setUser] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
+  const [isSharing, setIsSharing] = useState(false); // State for loader
   const [shareInfoDialogOpen, setShareInfoDialogOpen] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [sharedDocInfo, setSharedDocInfo] = useState(null);
-   var name = localStorage.getItem("name");
-   var useremail = localStorage.getItem("email");
+  var name = localStorage.getItem("name");
+  var useremail = localStorage.getItem("email");
   useEffect(() => {
     // Decode the JWT token
     const token = localStorage.getItem("authtoken");
-    console.log("token before decoding :    "+token);
+    console.log("token before decoding :    " + token);
     if (token !== null) {
-      const token1 = token; 
-      console.log("token before decoding in loop :    "+token1);
+      const token1 = token;
+      console.log("token before decoding in loop :    " + token1);
       const decodedToken = getDecodedToken(); // Decode the token
-      console.log("token after decoding :    "+decodedToken);
+      console.log("token after decoding :    " + decodedToken);
       setUser(decodedToken);
     }
     fetchDocuments();
   }, []);
 
-  console.log("user decode ",user);
+  console.log("user decode ", user);
   const fetchDocuments = async () => {
     try {
-      const token = localStorage.getItem("authtoken"); 
+      const token = localStorage.getItem("authtoken");
       console.log(token);
       const response = await axios.get(
         "http://localhost:8080/api/document/getAllDocument",
         {
-          params: { uploadedBy: name, uploaderEmail: useremail }, 
+          params: { uploadedBy: name, uploaderEmail: useremail },
           headers: {
-            "Authorization": `Bearer ${token}`, 
+            "Authorization": `Bearer ${token}`,
           },
         }
       );
@@ -78,7 +80,7 @@ const UserDashboard = () => {
     setAnchorEl(e.currentTarget);  // Set the anchor to the clicked icon
     setSelectedDoc(doc);  // Set the selected document
   };
-  
+
   const handleMenuClose = () => {
     setAnchorEl(null);  // Close the menu by setting anchorEl to null
     setSelectedDoc(null);  // Reset selectedDoc
@@ -100,7 +102,7 @@ const UserDashboard = () => {
       "application/x-rar-compressed": "RAR",
     };
 
-    return fileTypeMap[mimeType] || mimeType.toUpperCase(); 
+    return fileTypeMap[mimeType] || mimeType.toUpperCase();
   };
 
   // Handle file upload
@@ -108,7 +110,7 @@ const UserDashboard = () => {
     const file = event.target.files[0];
     if (!file) return;
 
-    const token = localStorage.getItem("authtoken"); 
+    const token = localStorage.getItem("authtoken");
 
     // Validate file type and size
     if (file.type.startsWith("video/")) {
@@ -123,8 +125,8 @@ const UserDashboard = () => {
       return;
     }
 
-    console.log("username :   "+name);
-    console.log("usermail...: "+useremail);
+    console.log("username :   " + name);
+    console.log("usermail...: " + useremail);
     const formData = new FormData();
     formData.append("file", file);
     formData.append("uploadedBy", name);
@@ -132,16 +134,16 @@ const UserDashboard = () => {
 
     try {
       console.log(localStorage.getItem("authtoken"));
-      const token = localStorage.getItem("authtoken"); 
-      console.log("this is my jwt token :    "+localStorage.getItem("authtoken"));
+      const token = localStorage.getItem("authtoken");
+      console.log("this is my jwt token :    " + localStorage.getItem("authtoken"));
       await axios.post("http://localhost:8080/api/document/upload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          "Authorization": `Bearer ${token}`, 
+          "Authorization": `Bearer ${token}`,
         },
       });
       console.log(token);
-      fetchDocuments(); 
+      fetchDocuments();
       alert("File uploaded successfully!");
     } catch (error) {
       console.error("Error uploading file:", error);
@@ -152,82 +154,82 @@ const UserDashboard = () => {
   };
 
 
-const deleteDocument = async (id) => {
-  try {
-    const token = localStorage.getItem("authtoken"); 
+  const deleteDocument = async (id) => {
+    try {
+      const token = localStorage.getItem("authtoken");
 
-    if (!token) {
-      alert("You are not authenticated. Please log in.");
-      return;
-    }
-
-    const res=await axios.delete(`http://localhost:8080/api/document/deleteDocument/${id}`,{
-      headers: {
-        "Authorization": `Bearer ${token}` 
+      if (!token) {
+        alert("You are not authenticated. Please log in.");
+        return;
       }
-    });
 
-    fetchDocuments(); 
-    alert("File deleted successfully!");
-  } catch (error) {
-    console.error("Error deleting file:", error.response || error.message);
-    alert("Failed to delete file.");
-  }
-};
+      const res = await axios.delete(`http://localhost:8080/api/document/deleteDocument/${id}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      fetchDocuments();
+      alert("File deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting file:", error.response || error.message);
+      alert("Failed to delete file.");
+    }
+  };
 
 
-const handleDownload = async (docId) => {
-  const token = localStorage.getItem("authtoken"); 
-  const fileUrl = `http://localhost:8080/api/document/download/${docId}`;
-  const headers = new Headers();
-  headers.append("Authorization", `Bearer ${token}`);
+  const handleDownload = async (docId) => {
+    const token = localStorage.getItem("authtoken");
+    const fileUrl = `http://localhost:8080/api/document/download/${docId}`;
+    const headers = new Headers();
+    headers.append("Authorization", `Bearer ${token}`);
 
-  try {
-    const response = await fetch(fileUrl, { headers });
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = docId; // You can customize the filename here
-    link.click();
-    window.URL.revokeObjectURL(url); // Clean up the URL object
-  } catch (error) {
-    console.error('Error downloading document:', error);
-  }
-};
+    try {
+      const response = await fetch(fileUrl, { headers });
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = docId; // You can customize the filename here
+      link.click();
+      window.URL.revokeObjectURL(url); // Clean up the URL object
+    } catch (error) {
+      console.error('Error downloading document:', error);
+    }
+  };
 
 
   // Preview file
   const handlePreview = async (doc) => {
     try {
       const token = localStorage.getItem("authtoken"); // Retrieve JWT token
-  
+
       if (!token) {
         alert("You are not authenticated. Please log in.");
         return;
       }
-  
+
       const fileUrl = `http://localhost:8080/api/document/download/${doc.id}`;
       const headers = new Headers();
       headers.append("Authorization", `Bearer ${token}`);
-  
+
       const response = await fetch(fileUrl, { headers });
-  
+
       if (!response.ok) {
         throw new Error("Failed to fetch document");
       }
-  
+
       const blob = await response.blob();
       const fileType = doc.type;
-  
+
       const previewWindow = window.open("", "_blank");
       if (!previewWindow) {
         alert("Please allow pop-ups to preview the document.");
         return;
       }
-  
+
       const objectUrl = URL.createObjectURL(blob);
-  
+
       if (fileType === "application/pdf") {
         previewWindow.document.write(`<embed src="${objectUrl}" width="100%" height="600px" type="application/pdf" />`);
       } else if (fileType.startsWith("image/")) {
@@ -246,7 +248,7 @@ const handleDownload = async (docId) => {
       alert("Failed to preview file.");
     }
   };
-  
+
 
   // Toggle sort order
   const toggleSortOrder = () => {
@@ -343,6 +345,7 @@ const handleDownload = async (docId) => {
       setOpen(false); // Close the popup
     };
 
+    setIsSharing(true); // Show red loader
     const token = localStorage.getItem("authtoken"); // ******************
 
     try {
@@ -355,7 +358,7 @@ const handleDownload = async (docId) => {
           documentName: selectedDocumentName,
           sharedBy: name,
           sharedAt: "2024-12-08T10:00:00",
-          
+
         },
         {
           headers: {
@@ -368,6 +371,9 @@ const handleDownload = async (docId) => {
     } catch (error) {
       console.error("Error sharing document:", error);
       alert("Failed to share document. Please try again.");
+    } finally {
+
+      setIsSharing(false); // Hide red loader after completion
     }
   };
 
@@ -505,9 +511,22 @@ const handleDownload = async (docId) => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseSharePopup}>Cancel</Button>
-          <Button onClick={handleShareDocument} color="primary">
-            Share
+          <Button onClick={handleCloseSharePopup} color="secondary">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleShareDocument}
+            color="primary"
+            disabled={isSharing || !email || emailError}
+          >
+            {isSharing ? (
+              <ClipLoader size={18} color="green" /> // Green loader
+            ) : (
+              <>
+                <FontAwesomeIcon icon={faShareAlt} style={{ marginRight: "8px" }} />
+                Share
+              </>
+            )}
           </Button>
         </DialogActions>
       </Dialog>

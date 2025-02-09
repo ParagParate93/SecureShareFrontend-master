@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { toast } from "react-toastify"; 
 import "./ContactUs.css";
 import NavigationBar from "../components/NavigationBar";
+import { ClipLoader } from "react-spinners"; // Loader from react-spinners
+
 
 const FancyContactUs = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +12,7 @@ const FancyContactUs = () => {
     message: "",
   });
  
+  const [loading, setLoading] = useState(false); // Loader state
   const [showContactInfo, setShowContactInfo] = useState(false);
 
   const handleChange = (e) => {
@@ -19,6 +22,7 @@ const FancyContactUs = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true); // Show loader
 
     try {
       const response = await fetch("http://localhost:8080/api/contactus/submit", {
@@ -40,7 +44,10 @@ const FancyContactUs = () => {
     } catch (error) {
       console.error("Error submitting form:", error);
       toast.error("There was an error with the submission. Please try again.");
+    } finally {
+      setLoading(false); // Hide loader after response
     }
+    
   };
 
   return (
@@ -88,9 +95,14 @@ const FancyContactUs = () => {
               />
               <label className="fancy-label">Your Message</label>
             </div>
-            <button type="submit" className="fancy-submit-button">Send Message</button>
+            {/* Submit Button with Loader */}
+            <button type="submit" className="fancy-submit-button" disabled={loading}>
+              {loading ? <ClipLoader size={20} color={"#fff"} /> : "Send Message"}
+            </button>
           </form>
         </div>
+
+
 
         <button
           className="fancy-contact-toggle"

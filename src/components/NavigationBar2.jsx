@@ -68,9 +68,6 @@ const NavigationBar2 = () => {
             </li>
           </>
         )}
-        <li>
-          <Link to="/about">About Us</Link>
-        </li>
       </ul>
     </nav>
   );
