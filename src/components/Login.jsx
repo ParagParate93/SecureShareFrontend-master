@@ -63,10 +63,19 @@ const Login = () => {
     console.log("Submitting OTP");
 
     try {
-      const response = await axios.post("http://localhost:8080/otp/verifyotp", {
-        email: loginData.email,
-        otp: otp,
-      });
+      const response = await axios.post(
+        "http://localhost:8080/otp/verifyotp",
+        {
+          email: loginData.email,
+          otp: otp,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json",  // 👈 Explicitly request JSON response
+          },
+        }
+      );
 
       console.log(response.data);
       localStorage.setItem("authtoken", response.data.token);

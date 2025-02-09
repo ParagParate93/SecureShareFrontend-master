@@ -38,6 +38,9 @@ const UserDashboard = () => {
   const [shareInfoDialogOpen, setShareInfoDialogOpen] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [sharedDocInfo, setSharedDocInfo] = useState(null);
+  const [isPremiumUser, setIsPremiumUser] = useState(false);
+  const [isUpgradePopupOpen, setIsUpgradePopupOpen] = useState(false)
+
    var name = localStorage.getItem("name");
    var useremail = localStorage.getItem("email");
   useEffect(() => {
@@ -54,7 +57,14 @@ const UserDashboard = () => {
     fetchDocuments();
   }, []);
 
-  console.log("user decode ",user);
+
+  useEffect(() => {
+    // Fetch isPremiumUser status from localStorage when component mounts
+    const premiumStatus = localStorage.getItem("isPremiumUser") === "true";
+    setIsPremiumUser(premiumStatus);
+  }, []);
+
+ 
   const fetchDocuments = async () => {
     try {
       const token = localStorage.getItem("authtoken"); 
@@ -110,7 +120,7 @@ const UserDashboard = () => {
     if (!file) return;
 
     const token = localStorage.getItem("authtoken"); 
-
+    const isPremiumUser = localStorage.getItem("isPremiumUser") === "true";
     // Validate file type and size
     if (file.type.startsWith("video/")) {
       alert("Video files are not allowed!");
@@ -118,12 +128,12 @@ const UserDashboard = () => {
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      alert("File size cannot be larger than 2MB!");
+    if (!isPremiumUser && file.size > 2 * 1024 * 1024) {
+      // Show upgrade popup if file size exceeds 2MB
+      setIsUpgradePopupOpen(true);
       event.target.value = "";
       return;
     }
-
     console.log("username :   "+name);
     console.log("usermail...: "+useremail);
     const formData = new FormData();
@@ -152,7 +162,13 @@ const UserDashboard = () => {
     event.target.value = "";
   };
 
+  const handleUpgradeClose = () => setIsUpgradePopupOpen(false);
 
+  // Call the handlePayment function when user clicks upgrade button
+  const handleUpgradeClick = () => {
+    setIsUpgradePopupOpen(false); // Close the popup
+    handlePayment(); // Trigger the handlePayment function
+  };
 const deleteDocument = async (id) => {
   try {
     const token = localStorage.getItem("authtoken"); 
@@ -386,146 +402,213 @@ const handleDownload = async (docId) => {
     setShareInfoDialogOpen(false);
     setSharedDocInfo(null);
   };
-  return (
-    <div className="user-dashboard-container">
-      <NavigationBar2 />
-      <header className="user-dashboard-header">
-        <h1>User Dashboard</h1>
-        <p>Manage your documents securely.</p>
-      </header>
 
-      <main className="user-dashboard-main">
-        {/* Upload Section */}
-        <section className="user-dashboard-upload-section">
-          <label className="upload-button">
-            <FontAwesomeIcon icon={faUpload} />
-            <span>Upload File</span>
-            <input
-              type="file"
-              onChange={handleFileUpload}
-              className="upload-input"
-            />
-          </label>
-        </section>
 
-        {/* Search and Sort Section */}
-        <section className="user-dashboard-sort-search">
-          <div className="search-sort-container">
-            <button className="sort-button" onClick={toggleSortOrder}>
-              <FontAwesomeIcon icon={faSort} />
-              {sortOrder === "asc" ? " Ascending" : " Descending"}
-            </button>
-            <div className="search-input-container">
-              <FontAwesomeIcon icon={faSearch} className="search-icon" />
-              <input
-                type="text"
-                placeholder="Search files by name..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
-              />
-            </div>
-          </div>
-        </section>
 
-        {/* File List Section */}
-        <section className="user-dashboard-file-list">
-          {filteredDocuments.length === 0 ? (
-            <p>No documents available.</p>
-          ) : (
-            <table className="file-table">
-              <thead>
-                <tr>
-                  <th>File Name</th>
-                  <th>Date Uploaded</th>
-                  <th>File Type</th>
-                  <th>Size</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredDocuments.map((doc) => (
-                  <tr key={doc.id}>
-                    <td>
-                      {doc.name}
-                      {doc.shared && (
-                        <FontAwesomeIcon
-                          icon={faShareSquare}
-                          className="shared-icon"
-                          title="Shared with you"
-                          style={{ marginLeft: '90px' }}
-                          onClick={() => handleViewShareInfo(doc)}
-                        />
-                      )}
-                    </td>
-                    <td>{formatDate(doc.uploadedAt)}</td>
-                    <td>
-                      <FontAwesomeIcon icon={getFileIcon(doc.type)} /> {formatFileType(doc.type)}
-                    </td>
-                    <td>{formatFileSize(doc.size)}</td>
-                    <td>
-                      <FontAwesomeIcon
-                        icon={faEllipsisV}
-                        className="action-icon"
-                        onClick={(e) => handleMenuClick(e, doc)}
-                      />
-                      <Menu
-                        anchorEl={anchorEl}
-                        open={Boolean(anchorEl) && selectedDoc === doc}
-                        onClose={handleMenuClose}
-                      >
-                        <MenuItem onClick={() => handlePreview(doc)}>Preview</MenuItem>
-                        {/* Add the download option */}
-                        <MenuItem onClick={() => handleDownload(doc.id)}>Download</MenuItem>
-                        {!doc.shared && [
-                          <MenuItem key="share" onClick={() => handleOpenSharePopup(doc.id, doc.name)}>Share</MenuItem>,
-                          <MenuItem key="delete" onClick={() => deleteDocument(doc.id)}>Delete</MenuItem>
-                        ]}
-                      </Menu>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </section>
-      </main>
+const handlePayment = async () => {
+  try {
+    const token = localStorage.getItem("authtoken"); // Get auth token for backend
 
-      {/* Share Document Popup */}
-      <Dialog open={isSharePopupOpen} onClose={handleCloseSharePopup}>
-        <DialogTitle>Share Document</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Email Address"
-            type="email"
-            value={email}
-            onChange={handleEmailChange}
-            fullWidth
-            error={!!emailError}
-            helperText={emailError}
+    // Call your backend to create an order
+    const response = await axios.post(
+      "http://localhost:8080/createOrder",
+      { amount: 50000 }, // ₹500 in paise
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`, // Attach JWT token for Spring Security
+        },
+      }
+    );
+
+    if (!response.data.orderId) {
+      alert("Failed to create order");
+      return;
+    }
+
+    
+    const options = {
+      key: "rzp_test_u768hLGUYuYgrN", // Your Razorpay Test Key
+      amount: 50000, // Amount in paise
+      currency: "INR",
+      name: "Trust Vault",
+      description: "Upgrade to Premium",
+      order_id: response.data.orderId, 
+      handler: function (response) {
+        alert("Payment Successful: " + response.razorpay_payment_id);
+        localStorage.setItem("isPremiumUser", "true");
+      },
+      prefill: {
+        name: "Ashwini Patil",
+        email: "patilash8698@gmail.com",
+        contact: "9209261414",
+      },
+      theme: {
+        color: "#3399cc",
+      },
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+  } catch (error) {
+    console.error("Error in payment:", error);
+    alert("Payment failed! Check console for details.");
+  }
+};
+  
+return (
+  <div className="user-dashboard-container">
+    <NavigationBar2 />
+    <header className="user-dashboard-header">
+      <h1>User Dashboard</h1>
+      <p>Manage your documents securely.</p>
+    </header>
+
+    <main className="user-dashboard-main">
+      {/* Upload Section */}
+      <section className="user-dashboard-upload-section">
+        <label className="upload-button">
+          <FontAwesomeIcon icon={faUpload} />
+          <span>Upload File</span>
+          <input
+            type="file"
+            onChange={handleFileUpload}
+            className="upload-input"
           />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseSharePopup}>Cancel</Button>
-          <Button onClick={handleShareDocument} color="primary">
-            Share
-          </Button>
-        </DialogActions>
-      </Dialog>
+        </label>
+      </section>
 
-      {/* Share Document Info Dialog */}
-      <Dialog open={shareInfoDialogOpen} onClose={handleCloseShareInfoDialog}>
-        <DialogTitle>Shared Document Info</DialogTitle>
-        <DialogContent>
-          <p><strong>Shared By:</strong> {sharedDocInfo?.sharedBy}</p>
-          <p><strong>Shared At:</strong> {formatDate(sharedDocInfo?.sharedAt)}</p>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseShareInfoDialog}>Close</Button>
-        </DialogActions>
-      </Dialog>
-    </div>
-  );
+      {/* Search and Sort Section */}
+      <section className="user-dashboard-sort-search">
+        <div className="search-sort-container">
+          <button className="sort-button" onClick={toggleSortOrder}>
+            <FontAwesomeIcon icon={faSort} />
+            {sortOrder === "asc" ? " Ascending" : " Descending"}
+          </button>
+          <div className="search-input-container">
+            <FontAwesomeIcon icon={faSearch} className="search-icon" />
+            <input
+              type="text"
+              placeholder="Search files by name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* File List Section */}
+      <section className="user-dashboard-file-list">
+        {filteredDocuments.length === 0 ? (
+          <p>No documents available.</p>
+        ) : (
+          <table className="file-table">
+            <thead>
+              <tr>
+                <th>File Name</th>
+                <th>Date Uploaded</th>
+                <th>File Type</th>
+                <th>Size</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredDocuments.map((doc) => (
+                <tr key={doc.id}>
+                  <td>
+                    {doc.name}
+                    {doc.shared && (
+                      <FontAwesomeIcon
+                        icon={faShareSquare}
+                        className="shared-icon"
+                        title="Shared with you"
+                        style={{ marginLeft: '90px' }}
+                        onClick={() => handleViewShareInfo(doc)}
+                      />
+                    )}
+                  </td>
+                  <td>{formatDate(doc.uploadedAt)}</td>
+                  <td>
+                    <FontAwesomeIcon icon={getFileIcon(doc.type)} /> {formatFileType(doc.type)}
+                  </td>
+                  <td>{formatFileSize(doc.size)}</td>
+                  <td>
+                    <FontAwesomeIcon
+                      icon={faEllipsisV}
+                      className="action-icon"
+                      onClick={(e) => handleMenuClick(e, doc)}
+                    />
+                    <Menu
+                      anchorEl={anchorEl}
+                      open={Boolean(anchorEl) && selectedDoc === doc}
+                      onClose={handleMenuClose}
+                    >
+                      <MenuItem onClick={() => handlePreview(doc)}>Preview</MenuItem>
+                      {/* Add the download option */}
+                      <MenuItem onClick={() => handleDownload(doc.id)}>Download</MenuItem>
+                      {!doc.shared && [
+                        <MenuItem key="share" onClick={() => handleOpenSharePopup(doc.id, doc.name)}>Share</MenuItem>,
+                        <MenuItem key="delete" onClick={() => deleteDocument(doc.id)}>Delete</MenuItem>
+                      ]}
+                    </Menu>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+    </main>
+
+    {/* Share Document Popup */}
+    <Dialog open={isSharePopupOpen} onClose={handleCloseSharePopup}>
+      <DialogTitle>Share Document</DialogTitle>
+      <DialogContent>
+        <TextField
+          label="Email Address"
+          type="email"
+          value={email}
+          onChange={handleEmailChange}
+          fullWidth
+          error={!!emailError}
+          helperText={emailError}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleCloseSharePopup}>Cancel</Button>
+        <Button onClick={handleShareDocument} color="primary">
+          Share
+        </Button>
+      </DialogActions>
+    </Dialog>
+
+
+    <Dialog open={isUpgradePopupOpen} onClose={handleUpgradeClose}>
+      <DialogTitle>Upgrade to Premium</DialogTitle>
+      <DialogContent>
+        <p>File size exceeds 2MB. Upgrade to Premium to upload larger files!</p>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleUpgradeClose}>Cancel</Button>
+        <Button onClick={handleUpgradeClick} color="primary">Upgrade to Premium</Button>
+      </DialogActions>
+    </Dialog>
+
+
+    {/* Share Document Info Dialog */}
+    <Dialog open={shareInfoDialogOpen} onClose={handleCloseShareInfoDialog}>
+      <DialogTitle>Shared Document Info</DialogTitle>
+      <DialogContent>
+        <p><strong>Shared By:</strong> {sharedDocInfo?.sharedBy}</p>
+        <p><strong>Shared At:</strong> {formatDate(sharedDocInfo?.sharedAt)}</p>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleCloseShareInfoDialog}>Close</Button>
+      </DialogActions>
+    </Dialog>
+  </div>
+);
 };
 
 export default UserDashboard;
